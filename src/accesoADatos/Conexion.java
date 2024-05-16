@@ -37,7 +37,7 @@ public class Conexion {
                     res = true;
                 } catch (NullPointerException | SQLException | ClassNotFoundException ex) {
                     res = false;
-                    msjError.add("fallo de conexion:" + ex.getMessage());
+                    msjError.add("Conexion: getConexion() -> " + ex.getMessage());
                 }
             }
         } else {
