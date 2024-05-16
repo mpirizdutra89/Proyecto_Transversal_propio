@@ -44,7 +44,16 @@ public class AlumnoData {
                 }
                 ps.close();
             } catch (SQLException ex) {
-                Conexion.msjError.add("AlumnosDAta: guardarAlumno ->" + ex.getMessage());
+                if (ex.getErrorCode() == 1062) {//es para que capturar campos unicos
+                    //igual va a seguir sliendo ya que es la libreria lo que lo imprime
+                    //[ WARN] (main) Error: 1062-23000: Duplicate entry '565' for key 'alumno.dni'
+                    //igual el usuario no va averla consola
+                  
+                     Conexion.msjError.add("AlumnosDAta: guardarAlumno 'Clave repetida para dni' ->" + ex.getMessage());
+                }else{
+                     Conexion.msjError.add("AlumnosDAta: guardarAlumno ->" + ex.getMessage());
+                }
+               
             }
         }
         //ver donde cerrrar la coneccion puede ser en el main o vista o cuando ce cierra un jFrame interno
