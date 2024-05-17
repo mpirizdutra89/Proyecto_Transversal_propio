@@ -24,9 +24,13 @@ public class Conexion {
     private static final String bd = "universidadulp";
     private static final String driver = "org.mariadb.jdbc.Driver";
     public static ArrayList<String> msjError = new ArrayList<String>();
-
-    public static boolean getConexion() {
-        boolean res = false;
+    
+    private Conexion(){
+        
+    }
+    
+    public static Connection getConexion() {
+        
         if (servicioMysql()) {
             if (servicioMysql()) {
 
@@ -34,16 +38,16 @@ public class Conexion {
                     Class.forName(driver);
                     
                     conec = DriverManager.getConnection(host + bd, user, pass);
-                    res = true;
+                   
                 } catch (NullPointerException | SQLException | ClassNotFoundException ex) {
-                    res = false;
+                   
                     msjError.add("Conexion: getConexion() -> " + ex.getMessage());
                 }
             }
         } else {
             msjError.add("Servicio mysql esta caido.- llamada en getConeccion()");
         }
-        return res;
+        return conec;
 
     }
 
@@ -82,7 +86,7 @@ public class Conexion {
     // retorna un ResultSet
     public static ResultSet consulta(String sql) {
         ResultSet res = null;
-        if (getConexion()) {
+        
 
             Statement stmt;
 
@@ -95,29 +99,12 @@ public class Conexion {
                 msjError.add("fallo la consulta: " + ex.getMessage());
             }
 
-        }
+        
         return res;
     }
 
     // devulve 1 el usuario se borro o se actualizo depende de la consulta
-    public static int actualizar(String sql) {
-        int res = -1;
-        if (getConexion()) {
 
-            Statement stmt;
-
-            try {
-                stmt = conec.createStatement();
-                res = stmt.executeUpdate(sql);
-
-            } catch (SQLException ex) {
-
-                msjError.add("fallo la actualizacion: " + ex.getMessage());
-            }
-            getDesconexion();
-        }
-        return res;
-    }
 
     public static void mostrarErrores() {
         if (msjError.size() > 0) {

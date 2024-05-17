@@ -1,6 +1,6 @@
 package accesoADatos;
 
-import accesoADatos.Conexion;
+
 import entidades.Alumno;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,15 +10,18 @@ import java.util.ArrayList;
 import java.sql.Date;
 import java.time.LocalDate;
 import javax.swing.JOptionPane;
+import java.sql.Connection;
 /**
  *
  * @author Nicolas
  */
 public class AlumnoData {
      private static Alumno alumno;
-
-    public AlumnoData() {
-    }
+     private static Connection conec=null;
+    
+     public AlumnoData() {   
+        conec=Conexion.getConexion();
+     }
      
      
      
@@ -28,9 +31,9 @@ public class AlumnoData {
         String query = "INSERT INTO alumno (dni, apellido,nombre,fechaNacimiento,estado) VALUES (?,?,?,?,?)";
         
         boolean res = false; 
-        if (Conexion.getConexion()) {
+       
             try {
-                PreparedStatement ps = Conexion.conec.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement ps = conec.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
                 ps.setInt(1, alumno.getDni());
                 ps.setString(2, alumno.getApellido());
                 ps.setString(3, alumno.getNombre());
@@ -55,7 +58,7 @@ public class AlumnoData {
                 }
                
             }
-        }
+        
         //ver donde cerrrar la coneccion puede ser en el main o vista o cuando ce cierra un jFrame interno
         
         return res;
@@ -65,9 +68,9 @@ public class AlumnoData {
         alumno=null;
         PreparedStatement ps = null;
         String consulta="SELECT dni,apellido,nombre,fechaNacimiento FROM alumno WHERE  idAlumno= ? and estado=1";
-        if(Conexion.getConexion()){
+       
         try{
-             ps = Conexion.conec.prepareStatement(consulta);
+             ps = conec.prepareStatement(consulta);
              ps.setInt(1,id );
              ResultSet res = ps.executeQuery();
              if(res.next()){
@@ -87,7 +90,7 @@ public class AlumnoData {
          } catch (SQLException ex) {
                 Conexion.msjError.add("AlumnosDAta: BuscarAlumnoID ->" + ex.getMessage());
             }
-        }
+        
             
         
         
@@ -98,9 +101,9 @@ public class AlumnoData {
         alumno=null;
         PreparedStatement ps = null;
         String consulta="SELECT dni,apellido,nombre,fechaNacimiento FROM alumno WHERE  dni= ? and estado=1";
-        if(Conexion.getConexion()){
+       
         try{
-             ps = Conexion.conec.prepareStatement(consulta);
+             ps = conec.prepareStatement(consulta);
              ps.setInt(1,dni );
              ResultSet res = ps.executeQuery();
              if(res.next()){
@@ -120,7 +123,7 @@ public class AlumnoData {
          } catch (SQLException ex) {
                 Conexion.msjError.add("AlumnosData: BuscarAlumnoDNI ->" + ex.getMessage());
             }
-        }
+        
             
         
         
@@ -131,9 +134,9 @@ public class AlumnoData {
         String query = "UPDATE alumno SET dni=?,apellido=?,nombre=?,fechaNacimiento=?,estado=? where idAlumno=?";
 
         boolean res = false;
-        if (Conexion.getConexion()) {
+       
             try {
-                PreparedStatement ps = Conexion.conec.prepareStatement(query);
+                PreparedStatement ps = conec.prepareStatement(query);
 
                 ps.setInt(1, alumno.getDni());
                 ps.setString(2, alumno.getApellido());
@@ -149,19 +152,19 @@ public class AlumnoData {
 
                 Conexion.msjError.add("AlumnoDAta: modiicarAlumno() ->" + ex.getMessage());
             }
-        }
+        
         //ver donde cerrrar la coneccion puede ser en el main o vista o cuando ce cierra un jFrame interno
 
         return res;
     }
     
     public  boolean eliminarAlumno(int idAlumno) {
-        String query = "DELETE FROM alumno WHERE idAlumno=?"; //la otra opcion seria darle de baja
+        String query = "UPDATE alumno SET estado=0 where idAlumno=?"; //la otra opcion seria darle de baja
 
         boolean res = false;
-        if (Conexion.getConexion()) {
+       
             try {
-                PreparedStatement ps = Conexion.conec.prepareStatement(query);
+                PreparedStatement ps = conec.prepareStatement(query);
                 ps.setInt(1,idAlumno);
                int borrado= ps.executeUpdate();//devuelve 1 0 mas si varias filas se afectaron y si hay erroe sale por la excepcion
                 if(borrado==1){
@@ -172,7 +175,7 @@ public class AlumnoData {
 
                 Conexion.msjError.add("AlumnosData: borrado de la alumno ->" + ex.getMessage());
             }
-        }
+        
         //ver donde cerrrar la coneccion puede ser en el main o vista o cuando ce cierra un jFrame interno
 
         return res;
@@ -181,10 +184,13 @@ public class AlumnoData {
     public  ArrayList<Alumno> listarAlumnos() {
         ArrayList<Alumno> lista = new ArrayList<>();
         ResultSet res = null;
+        PreparedStatement ps=null;
         alumno = null;
+         String query = "select * from alumno where estado=1;";
         try {
 
-            res = Conexion.consulta("Select * from alumno");
+            ps = conec.prepareStatement(query);
+            res=ps.executeQuery();
             if (res != null) {
                 while (res.next()) {
                     //`idAlumno`, `dni`, `apellido`, `nombre`, `fechaNacimiento`, `estado`

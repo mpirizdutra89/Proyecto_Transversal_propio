@@ -1,6 +1,7 @@
 package accesoADatos;
 
 import entidades.Materia;
+import java.sql.Connection;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,14 +18,19 @@ import javax.swing.JOptionPane;
 public class MateriaData {
 
     private  Materia materia;
+    private static Connection conec = null;
+
+    public MateriaData() {
+        conec = Conexion.getConexion();
+    }
 
     public  boolean guardarMateria(Materia materia) {
         String query = "INSERT INTO materia (nombre, año, estado) VALUES (?,?,?)";
 
         boolean res = false;
-        if (Conexion.getConexion()) {
+       
             try {
-                PreparedStatement ps = Conexion.conec.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement ps = conec.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
                 ps.setString(1, materia.getNombre());
                 ps.setInt(2, materia.getYear());
@@ -40,7 +46,7 @@ public class MateriaData {
 
                 Conexion.msjError.add("MAteriaData: guardarMAteria ->" + ex.getMessage());
             }
-        }
+        
         //ver donde cerrrar la coneccion puede ser en el main o vista o cuando ce cierra un jFrame interno
 
         return res;
@@ -50,9 +56,9 @@ public class MateriaData {
         materia = null;
         PreparedStatement ps = null;
         String consulta = "SELECT nombre,año,estado FROM materia WHERE  idMateria= ? and estado=1";
-        if (Conexion.getConexion()) {
+       
             try {
-                ps = Conexion.conec.prepareStatement(consulta);
+                ps = conec.prepareStatement(consulta);
                 ps.setInt(1, id);
                 ResultSet res = ps.executeQuery();
                 if (res.next()) {
@@ -68,7 +74,7 @@ public class MateriaData {
             } catch (SQLException ex) {
                 Conexion.msjError.add("MateriaData: BuscarMteria ->" + ex.getMessage());
             }
-        }
+        
 
         return materia;
     }
@@ -77,9 +83,9 @@ public class MateriaData {
         String query = "UPDATE materia SET nombre=?,año=?,estado=? WHERE idMateria=?";
 
         boolean res = false;
-        if (Conexion.getConexion()) {
+       
             try {
-                PreparedStatement ps = Conexion.conec.prepareStatement(query);
+                PreparedStatement ps = conec.prepareStatement(query);
 
                 ps.setString(1, materia.getNombre());
                 ps.setInt(2, materia.getYear());
@@ -93,19 +99,19 @@ public class MateriaData {
 
                 Conexion.msjError.add("MateriaData: modiicarAlumno() ->" + ex.getMessage());
             }
-        }
+        
         //ver donde cerrrar la coneccion puede ser en el main o vista o cuando ce cierra un jFrame interno
 
         return res;
     }
-    
+    //baja logica
     public  boolean eliminarMateria(int idMateria) {
-        String query = "DELETE FROM materia WHERE idMateria=?"; //la otra opcion seria darle de baja
+        String query = "UPDATE  materia SET estado=0 WHERE idMateria=?"; //la otra opcion seria darle de baja
 
         boolean res = false;
-        if (Conexion.getConexion()) {
+        
             try {
-                PreparedStatement ps = Conexion.conec.prepareStatement(query);
+                PreparedStatement ps = conec.prepareStatement(query);
                 ps.setInt(1,idMateria);
                int borrado= ps.executeUpdate();//devuelve 1 0 mas si varias filas se afectaron y si hay erroe sale por la excepcion
                 if(borrado==1){
@@ -116,7 +122,7 @@ public class MateriaData {
 
                 Conexion.msjError.add("MateriaData: borrado de la materia ->" + ex.getMessage());
             }
-        }
+        
         //ver donde cerrrar la coneccion puede ser en el main o vista o cuando ce cierra un jFrame interno
 
         return res;
@@ -125,12 +131,17 @@ public class MateriaData {
     
     
 
-    public  ArrayList<Materia> listarMateria() {
+    public ArrayList<Materia> listarMateria() {
         ArrayList<Materia> lista = new ArrayList<>();
-        materia = null;
         ResultSet res = null;
+        PreparedStatement ps = null;
+
+        String consulta = "Select * from materia where estado=1 ";
+
         try {
-            res = Conexion.consulta("SELECT * from materia;");
+            ps = conec.prepareStatement(consulta);
+
+            res = ps.executeQuery();
             if (res != null) {
                 while (res.next()) {
                     int idMateria = res.getInt("idMateria");
